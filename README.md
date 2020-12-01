@@ -85,24 +85,14 @@ Submitting application(s) currently supported for **spark-shell, pyspark,**, **s
 ##### spark-shell usage:
 ```shell
 spark-shell --master yarn \
-  --conf spark.sql.hive.hiveserver2.jdbc.url="jdbc:hive2://localhost:10000" \
-  --conf spark.datasource.hive.warehouse.metastoreUri="thrift://host1:9083,thrift://host2:9083" \
-  --conf spark.hadoop.hive.llap.daemon.service.hosts="@llap0" \
-  --conf spark.hadoop.hive.zookeeper.quorum="host1:2181;host2:2181;host3:2181" \
-  --conf spark.datasource.hive.warehouse.load.staging.dir=/tmp \
   --jars /usr/hdp/current/hive_warehouse_connector/hive-warehouse-connector-assembly-1.0.0.3.1.5.0-152.jar
 ```
 
 ##### pyspark usage:
-> For PySpark, additionally we need to add the connector's to submit application.
+> For PySpark, additionally we need to add the connector(**pyspark_hwc-*.zip**) to submit application.
 
 ```shell  
 pyspark --master yarn \
-  --conf spark.sql.hive.hiveserver2.jdbc.url="jdbc:hive2://localhost:10000" \
-  --conf spark.datasource.hive.warehouse.metastoreUri="thrift://host1:9083,thrift://host2:9083" \
-  --conf spark.hadoop.hive.llap.daemon.service.hosts="@llap0" \
-  --conf spark.hadoop.hive.zookeeper.quorum="host1:2181;host2:2181;host3:2181" \
-  --conf spark.datasource.hive.warehouse.load.staging.dir=/tmp \
   --jars /usr/hdp/current/hive_warehouse_connector/hive-warehouse-connector-assembly-1.0.0.3.1.5.0-152.jar \
   --py-files /usr/hdp/current/hive_warehouse_connector/pyspark_hwc-1.0.0.3.1.5.0-152.zip
 ```
@@ -111,11 +101,6 @@ pyspark --master yarn \
 ```shell
 spark-submit --master yarn \
   --class <APP_CLASS_NAME> \
-  --conf spark.sql.hive.hiveserver2.jdbc.url="jdbc:hive2://localhost:10000" \
-  --conf spark.datasource.hive.warehouse.metastoreUri="thrift://host1:9083,thrift://host2:9083" \
-  --conf spark.hadoop.hive.llap.daemon.service.hosts="@llap0" \
-  --conf spark.hadoop.hive.zookeeper.quorum="host1:2181;host2:2181;host3:2181" \
-  --conf spark.datasource.hive.warehouse.load.staging.dir=/tmp \
   --jars /usr/hdp/current/hive_warehouse_connector/hive-warehouse-connector-assembly-1.0.0.3.1.5.0-152.jar \
   <APP_JAR_PATH>/<APP_JAR_NAME>
 ```
