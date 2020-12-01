@@ -66,6 +66,20 @@ spark.submit.pyfiles=/usr/hdp/current/hive_warehouse_connector/pyspark_hwc-1.0.0
 ```
 
 #### 2. Application level configuration
+
+While passing hwc settings we need to use **--conf**
+**Example:**
+
+```shell
+spark-shell --master yarn \
+  --conf spark.sql.hive.hiveserver2.jdbc.url="jdbc:hive2://localhost:10000" \
+  --conf spark.datasource.hive.warehouse.metastoreUri="thrift://host1:9083,thrift://host2:9083" \
+  --conf spark.hadoop.hive.llap.daemon.service.hosts="@llap0" \
+  --conf spark.hadoop.hive.zookeeper.quorum="host1:2181;host2:2181;host3:2181" \
+  --conf spark.datasource.hive.warehouse.load.staging.dir=/tmp \
+  --jars /usr/hdp/current/hive_warehouse_connector/hive-warehouse-connector-assembly-1.0.0.3.1.5.0-152.jar
+```
+
 Submitting application(s) currently supported for **spark-shell, pyspark,**, **spark-submit** and **Zeppelin**.
 
 ##### spark-shell usage:
@@ -93,10 +107,10 @@ pyspark --master yarn \
   --py-files /usr/hdp/current/hive_warehouse_connector/pyspark_hwc-1.0.0.3.1.5.0-152.zip
 ```
 
-##### spark-submit usage:
+##### spark-submit:
 ```shell
 spark-submit --master yarn \
-  --class <APP_CLASS_NAME>
+  --class <APP_CLASS_NAME> \
   --conf spark.sql.hive.hiveserver2.jdbc.url="jdbc:hive2://localhost:10000" \
   --conf spark.datasource.hive.warehouse.metastoreUri="thrift://host1:9083,thrift://host2:9083" \
   --conf spark.hadoop.hive.llap.daemon.service.hosts="@llap0" \
@@ -105,3 +119,6 @@ spark-submit --master yarn \
   --jars /usr/hdp/current/hive_warehouse_connector/hive-warehouse-connector-assembly-1.0.0.3.1.5.0-152.jar \
   <APP_JAR_PATH>/<APP_JAR_NAME>
 ```
+
+##### Zeppelin 
+https://docs.microsoft.com/en-us/azure/hdinsight/interactive-query/apache-hive-warehouse-connector-zeppelin
