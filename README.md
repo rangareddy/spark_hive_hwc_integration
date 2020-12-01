@@ -121,4 +121,5 @@ spark-submit --master yarn \
 ```
 
 ##### Zeppelin 
-https://docs.microsoft.com/en-us/azure/hdinsight/interactive-query/apache-hive-warehouse-connector-zeppelin
+* https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/integrating-hive/content/hive_zeppelin_configuration_hivewarehouseconnector.html
+* https://docs.microsoft.com/en-us/azure/hdinsight/interactive-query/apache-hive-warehouse-connector-zeppelin
