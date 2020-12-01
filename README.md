@@ -82,13 +82,13 @@ spark-shell --master yarn \
 
 Submitting application(s) currently supported for **spark-shell, pyspark,**, **spark-submit** and **Zeppelin**.
 
-##### spark-shell usage:
+##### spark-shell:
 ```shell
 spark-shell --master yarn \
   --jars /usr/hdp/current/hive_warehouse_connector/hive-warehouse-connector-assembly-1.0.0.3.1.5.0-152.jar
 ```
 
-##### pyspark usage:
+##### pyspark:
 > For PySpark, additionally we need to add the connector(**pyspark_hwc-*.zip**) to submit application.
 
 ```shell  
