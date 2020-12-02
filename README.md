@@ -3,7 +3,7 @@
 ## HiveWarehouseConnector setup
 
 ### Prerequisite
-* LLAP Service needs to be installed and enabled.
+* [LLAP Service needs to be installed and enabled](https://github.com/rangareddy/spark_hive_hwc_integration/blob/main/LLAP_Setup.md)
 
 #### Gathering initial Configuration
 ##### ThriftJDBC URL for LLAP HiveServer2
