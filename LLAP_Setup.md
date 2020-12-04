@@ -3,11 +3,12 @@
 ### 1. Enable YARN preemption
 You must enable YARN preemption before setting up Hive low-latency analytical processing (LLAP). YARN preemption directs the capacity scheduler to position an LLAP queue as the top-priority workload to run among cluster node resources. You do not need to label the nodes to ensure LLAP has top priority.
 
-1. In Ambari, select Services > YARN > Configs.
-(https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/performance-tuning/how-to/images/interactive-query-ambari-nontp.png)
-2. In YARN Features, set Pre-emption to Enabled (the default).
+1. In Ambari, select **Services** > **YARN** > **Configs**.
+2. In YARN Features, set Pre-emption to **Enabled** (the default).
+
 ![yarn_features_ambari_ui.png](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/performance-tuning/how-to/images/yarn_features_ambari_ui.png)
-Save the settings.
+
+3. Save the settings.
 
 ### 2. Enable interactive query
 You need to enable interactive query to take advantage of low-latency analytical processing (LLAP) of Hive queries. When you enable interactive query, you select a host for HiveServer Interactive.
@@ -16,12 +17,15 @@ The Interactive Query control displays a range of values for default Maximum Tot
 
 When you enable Interactive Query, the Run as end user and Hive user security settings have no effect. These controls affect batch-processing mode.
 
-1. In Ambari, select Services > Hive > Configs > Settings.
-![Enable interactive query](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/performance-tuning/how-to/images/interactive-query-ambari-nontp.png)
+1. In Ambari, select **Services** > **Hive** > **Configs** > **Settings**.
 2. In Interactive Query, set Enable Interactive Query to Yes:
+
 ![Enable interactive query](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/performance-tuning/how-to/images/interactive-query-ambari-nontp.png)
+
 3. In Select HiveServer Interactive Host, accept the default server to host HiveServer Interactive, or from the drop-down, select a different host.
-![] (https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/performance-tuning/how-to/images/hiveserver2_interactive_host_window.png)
+
+![hiveserver2_interactive_host_window](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/performance-tuning/how-to/images/hiveserver2_interactive_host_window.png)
+
 If you do not want to set up multiple HiveServer Interactives for high availability, skip the next set of steps, and proceed to configuring the llap queue.
 
 ### 3. Set up multiple HiveServer Interactives for high availability
