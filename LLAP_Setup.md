@@ -1,19 +1,19 @@
 # Apache Hive LLAP Setup
 
 ### 1. Enable YARN preemption
-You must enable YARN preemption before setting up Hive low-latency analytical processing (LLAP). YARN preemption directs the capacity scheduler to position an LLAP queue as the top-priority workload to run among cluster node resources. You do not need to label the nodes to ensure LLAP has top priority.
+We must enable and configure YARN preemption, which directs the **Capacity Scheduler** to position a Hive LLAP queue as the top-priority workload to run among cluster node resources.
 
-1. In Ambari, select **Services** > **YARN** > **Configs**.
-2. In YARN Features, set Pre-emption to **Enabled** (the default).
+1. In Ambari, select **Services** > **YARN** > **Configs** tab > **Settings** subtab
+2. In **YARN Features**, set **Pre-emption** to **Enabled** (the default).
 
 ![yarn_features_ambari_ui.png](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/performance-tuning/how-to/images/yarn_features_ambari_ui.png)
 
-3. Save the settings.
+3. Click **SAVE** in the upper right area of the window.
 
 ### 2. Enable interactive query
-You need to enable interactive query to take advantage of low-latency analytical processing (LLAP) of Hive queries. When you enable interactive query, you select a host for HiveServer Interactive.
+We need to enable interactive query to take advantage of low-latency analytical processing (LLAP) of Hive queries. When you enable interactive query, you select a host for HiveServer Interactive.
 
-The Interactive Query control displays a range of values for default Maximum Total Concurrent Queries based on the number of nodes that you select for LLAP processing and the number of CPUs in the Hive LLAP cluster. The Ambari wizard typically calculates appropriate values for LLAP properties in Interactive Query, so accept the defaults or change the values to suit your environment.
+The Interactive Query control displays a range of values for default Maximum Total Concurrent Queries based on the number of nodes that we select for LLAP processing and the number of CPUs in the Hive LLAP cluster. The Ambari wizard typically calculates appropriate values for LLAP properties in Interactive Query, so accept the defaults or change the values to suit your environment.
 
 When you enable Interactive Query, the Run as end user and Hive user security settings have no effect. These controls affect batch-processing mode.
 
