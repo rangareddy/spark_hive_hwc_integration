@@ -41,10 +41,14 @@ hive/_HOST@EXAMPLE.COM
 1. Cluster level configuration
 2. Application level configuration
 
-If cluster is kerberos enabled then we need to add two additional properties
+If cluster is Kerberized cluster then we need to add the following two additional properties.
 
 1. **spark.security.credentials.hiveserver2.enabled** - **false** for **YARN client mode** and **true** for **YARN cluster mode**.
 2. **spark.sql.hive.hiveserver2.jdbc.url.principal** - **hive/_HOST@EXAMPLE.COM**
+
+a) In **client mode**, the driver will run in the spark client process and HWC in spark driver will use the principal for authentication. Since the driver does not use delegation token to authenticate, we won't need to set **spark.security.credentials.hiveserver2.enabled=true** to use **HiveServer2CredsProvider** 
+
+b) In **cluster mode** the driver will run in Application Master and HWC in spark driver will use delegation token to authenticate. Since the driver uses delegation token to authenticate, we need **HiveServer2CredsProvider**, hence we set **spark.security.credentials.hiveserver2.enabled** true.
 
 ##### Check the hive-warehouse-connector-assembly version
 ```shell
@@ -108,3 +112,55 @@ spark-submit --master yarn \
 ##### Zeppelin 
 * https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/integrating-hive/content/hive_zeppelin_configuration_hivewarehouseconnector.html
 * https://docs.microsoft.com/en-us/azure/hdinsight/interactive-query/apache-hive-warehouse-connector-zeppelin
+
+#### Create a database 
+```sql
+CREATE DATABASE hwc_db;
+```
+
+#### Creating a Hive Table
+```sql
+USE hwc_db;
+CREATE TABLE crimes(year INT, crime_rate DOUBLE);
+```
+
+#### Inserting data to Hive Table
+```sql
+INSERT INTO crimes VALUES (1997, 611.0), (1998, 567.6), (1999, 523.0), (2000, 506.5), (2001, 504.5), (2002, 494.4), (2003, 475.8);
+INSERT INTO crimes VALUES (2004, 463.2), (2005, 469.0), (2006, 479.3), (2007, 471.8), (2008, 458.6), (2009, 431.9), (2010, 404.5);
+INSERT INTO crimes VALUES (2011, 387.1), (2012, 387.8), (2013, 369.1), (2014, 361.6), (2015, 373.7), (2016, 386.3);
+```
+
+#### Selecting data
+```
+select * from crimes;
++--------------+--------------------+
+| crimes.year  | crimes.crime_rate  |
++--------------+--------------------+
+| 1997         | 611.0              |
+| 1998         | 567.6              |
+| 1999         | 523.0              |
+| 2000         | 506.5              |
+| 2001         | 504.5              |
+| 2002         | 494.4              |
+| 2003         | 475.8              |
+| 2004         | 463.2              |
+| 2005         | 469.0              |
+| 2006         | 479.3              |
+| 2007         | 471.8              |
+| 2008         | 458.6              |
+| 2009         | 431.9              |
+| 2010         | 404.5              |
+| 2011         | 387.1              |
+| 2012         | 387.8              |
+| 2013         | 369.1              |
+| 2014         | 361.6              |
+| 2015         | 373.7              |
+| 2016         | 386.3              |
++--------------+--------------------+
+```
+
+### Giving hive permission to all files under /warehouse/tablespace/managed/hive directory.
+```shell
+hdfs dfs -chown -R hive:hadoop /warehouse/tablespace/managed/hive
+```
