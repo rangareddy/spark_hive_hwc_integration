@@ -190,3 +190,7 @@ CREATE TABLE students (name VARCHAR(64), age INT, gpa DECIMAL(3,2));
 INSERT INTO TABLE students VALUES ('fred flintstone', 35, 1.28), ('barney rubble', 32, 2.32);             
 ```
 > Hive inserted the data much faster using the LLAP interactive query than using a conventional Hive query.
+
+### References:
+* https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/performance-tuning/content/hive_run_llap_query.html
+* https://docs.cloudera.com/HDPDocuments/HDP2/HDP-2.6.3/bk_command-line-installation/content/install_llap_secure.html
