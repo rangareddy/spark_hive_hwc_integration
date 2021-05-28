@@ -18,13 +18,11 @@ fi
 
 if [ ! -d "$hwc_directory" ]; then
   echo "HWC directory $hwc_directory does not exist"
-  exit 0
+  exit 1
 fi
 
-if [ [ ! -f "$hive_site_xml_file"] || [ ! -f "$beeline_site_xml_file" ] ]; then
-    echo "${hive_site_xml_file}/$beeline_site_xml_file does not exist on this host <$(hostname -f)>, or the current user <$(whoami)> does not have access to the files."
-    exit 0
-fi
+[ ! -f "$hive_site_xml_file" ] && { echo "${hive_site_xml_file} does not exist on this host, or the current user <$(whoami)> does not have access to the files."; exit 1; }
+[ ! -f "$beeline_site_xml_file" ] && { echo "${beeline_site_xml_file} does not exist on this host, or the current user <$(whoami)> does not have access to the files."; exit 1; }
 
 hive_metastore_uri=$(grep "thrift.*9083" "$hive_site_xml_file" |awk -F"<|>" '{print $3}')
 hive_jdbc_url=$(grep "beeline.hs2.jdbc.url.hive" -A1 "$beeline_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
