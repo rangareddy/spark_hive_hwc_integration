@@ -31,7 +31,7 @@ hwc_pyfile=$(find $hwc_directory -name pyspark_hwc-*.zip)
 
 echo ""
 echo "spark-shell --master yarn \ "
-echo "  --conf spark.sql.hive.hiveserver2.jdbc.url=jdbc:hive2://${hive_jdbc_url} \ "
+echo "  --conf spark.sql.hive.hiveserver2.jdbc.url=//${hive_jdbc_url} \ "
 echo "  --conf spark.datasource.hive.warehouse.metastoreUri=${hive_metastore_uri} \ "
 echo "  --conf spark.datasource.hive.warehouse.load.staging.dir=/tmp \ "
 echo "  --conf spark.jars=${hwc_jar} \ "
