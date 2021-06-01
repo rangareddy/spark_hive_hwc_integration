@@ -31,10 +31,9 @@ if [ -z "$beeline_site_xml_file" ]; then
     hosts=""
     for zookeeper_quorum in "${zookeeper_quorums[@]}"
     do
-      hosts+="${zookeeper_quorum}:${hive_zookeeper_port}"
+      hosts+="${zookeeper_quorum}:${hive_zookeeper_port},"
     done
-
-    hive_jdbc_url="jdbc:hive2://${hosts}/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2"
+    hive_jdbc_url="jdbc:hive2://${hosts%?}/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2"
 else
     hive_jdbc_url=$(grep "beeline.hs2.jdbc.url.hive" -A1 "$beeline_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
 fi
@@ -45,8 +44,8 @@ hwc_pyfile=$(find $hwc_directory -name pyspark_hwc-*.zip)
 
 echo ""
 echo "spark-shell --master yarn \ "
-echo "  --conf spark.sql.hive.hiveserver2.jdbc.url=${hive_jdbc_url} \ "
-echo "  --conf spark.datasource.hive.warehouse.metastoreUri=${hive_metastore_uri} \ "
+echo "  --conf spark.sql.hive.hiveserver2.jdbc.url=\'${hive_jdbc_url}\' \ "
+echo "  --conf spark.datasource.hive.warehouse.metastoreUri=\'${hive_metastore_uri}\' \ "
 echo "  --conf spark.datasource.hive.warehouse.load.staging.dir=/tmp \ "
 echo "  --conf spark.jars=${hwc_jar} \ "
 echo "  --conf spark.submit.pyFiles=${hwc_pyfile} \ "
