@@ -1,14 +1,20 @@
 #!/bin/bash
 
 log_info() {
-    current_date_time=$(date +'%m/%d/%Y %H:%M:%S')
-    info=${1}
-    echo "${current_date_time} INFO : ${info}"
+    if [[ "$#" -gt 0 ]]; then
+        current_date_time=$(date +'%m/%d/%Y %T')
+        info_level="INFO"
+        info_message=${1}
+        if [[ "$#" -gt 1 ]]; then
+             info_level=${1}
+             info_message=${2}
+        fi
+        Pattern="${current_date_time} ${info_level} : ${info_message}"
+        echo "${Pattern}"
+    fi
 }
 
-echo ""
 log_info "Running $0 script"
-echo ""
 
 hive_site_xml_file=$(ls /etc/hive/conf/hive-site.xml)
 beeline_site_xml_file=$(find /etc -name beeline-site.xml)
@@ -24,7 +30,7 @@ fi
 
 script_usage() {
   if [ ! -d "$hwc_directory" ]; then
-    echo "HWC <$hwc_directory> directory does not exist"
+    log_info "ERROR" "HWC <$hwc_directory> directory does not exist"
     exit 1
   fi
 }
@@ -34,7 +40,7 @@ script_usage
 [ ! -f "$hive_site_xml_file" ] && { echo "<hive-site.xml> file does not exist on this host or the current user <$(whoami)> does not have access to the files."; exit 1; }
 hive_jdbc_url=""
 if [ -z "$beeline_site_xml_file" ]; then
-    echo "<beeline-site.xml> file does not exist on this host or the current user <$(whoami)> does not have access to the files."
+    log_info "WARN" "<beeline-site.xml> file does not exist on this host or the current user <$(whoami)> does not have access to the files."
     hive_zookeeper_quorum=$(grep "hive.zookeeper.quorum" -A1 "$hive_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
     hive_zookeeper_port=$(grep "hive.zookeeper.client.port" -A1 "$hive_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
     IFS="," read -a zookeeper_quorums <<< $hive_zookeeper_quorum
@@ -52,13 +58,15 @@ hive_metastore_uri=$(grep "thrift.*9083" "$hive_site_xml_file" |awk -F"<|>" '{pr
 hwc_jar=$(find $hwc_directory -name hive-warehouse-connector-assembly-*.jar)
 hwc_pyfile=$(find $hwc_directory -name pyspark_hwc-*.zip)
 
+echo "metastore uri ${hive_metastore_uri}"
+
 echo ""
 echo "spark-shell --master yarn \ "
 echo "  --conf spark.sql.hive.hiveserver2.jdbc.url='${hive_jdbc_url}' \ "
 echo "  --conf spark.datasource.hive.warehouse.metastoreUri='${hive_metastore_uri}' \ "
 echo "  --conf spark.datasource.hive.warehouse.load.staging.dir=/tmp \ "
 echo "  --conf spark.jars=${hwc_jar} \ "
-echo "  --conf spark.submit.pyFiles=${hwc_pyfile} \ "
+#echo "  --conf spark.submit.pyFiles=${hwc_pyfile} \ "
 echo "  --conf spark.datasource.hive.warehouse.read.via.llap=false \ "
 echo "  --conf spark.datasource.hive.warehouse.read.mode=DIRECT_READER_V2 \ "
 echo "  --conf spark.sql.hive.hwc.execution.mode=spark \ "
@@ -68,4 +76,4 @@ echo "  --conf spark.sql.extensions=com.qubole.spark.hiveacid.HiveAcidAutoConver
 echo "  --conf spark.kryo.registrator=com.qubole.spark.hiveacid.util.HiveAcidKyroRegistrator"
 echo ""
 
-echo "Run the above command to test HWC in CDP"
+log_info "Run the above command to test HWC in CDP"
