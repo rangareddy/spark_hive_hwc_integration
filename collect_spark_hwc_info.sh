@@ -1,7 +1,13 @@
 #!/bin/bash
 
+log_info() {
+    current_date_time=$(date +'%m/%d/%Y %H:%M:%S')
+    info=${1}
+    echo "${current_date_time} INFO : ${info}"
+}
+
 echo ""
-echo "Running $0 script"
+log_info "Running $0 script"
 echo ""
 
 hive_site_xml_file=$(ls /etc/hive/conf/hive-site.xml)
