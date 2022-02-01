@@ -3,15 +3,14 @@
 set -x
 
 # log_info() is used to log the message based on logging level. By default logging level will be INFO.
-
 log_info() {
     if [[ "$#" -gt 0 ]]; then
         current_date_time=$(date +'%m/%d/%Y %T')
         info_level="INFO"
         info_message=${1}
         if [[ "$#" -gt 1 ]]; then
-             info_level=${1}
-             info_message=${2}
+           info_level=${1}
+           info_message=${2}
         fi
         Pattern="${current_date_time} ${info_level} : ${info_message}"
         echo "${Pattern}"
@@ -20,30 +19,26 @@ log_info() {
 
 log_info "Running $0 script"
 
-
 hive_site_xml_file_path="/etc/hive/conf/hive-site.xml"
 hive_site_xml_file=$(ls ${hive_site_xml_file_path})
 beeline_site_xml_file=$(find /etc -name beeline-site.xml)
 hwc_directory="/opt/cloudera/parcels/CDH/lib/hive_warehouse_connector/"
 
 script_usage() {
+    ERROR_MSG=""
 
-	ERROR_MSG=""
-
-  	if [ ! -d "$hwc_directory" ]; then
+    if [ ! -d "$hwc_directory" ]; then
     	ERROR_MSG="HWC <$hwc_directory> directory does not exist on this host or the current user <$(whoami)> does not have access to ${hwc_directory directory} directory."
-    	exit 1
-  	fi
+    fi
 
-  	if [ ! -f "$hive_site_xml_file" ]; then
+    if [ ! -f "$hive_site_xml_file" ]; then
     	ERROR_MSG="<hive-site.xml> file does not exist on this host or the current user <$(whoami)> does not have access to ${hive_site_xml_file_path} file."
-    	exit 1
-  	fi
+    fi
 
-  	if [ -z "$ERROR_MSG" ]; then
+    if [ -z "$ERROR_MSG" ]; then
     	log_info "ERROR" ERROR_MSG
     	exit 1
-  	fi
+    fi
 }
 
 script_usage
@@ -51,23 +46,30 @@ script_usage
 hive_jdbc_url=""
 if [ -z "$beeline_site_xml_file" ]; then
     log_info "WARN" "<beeline-site.xml> file does not exist on this host or the current user <$(whoami)> does not have access to the files."
+    
     hive_zookeeper_quorum=$(grep "hive.zookeeper.quorum" -A1 "$hive_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
     hive_zookeeper_port=$(grep "hive.zookeeper.client.port" -A1 "$hive_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
+    
     IFS="," read -a zookeeper_quorums <<< $hive_zookeeper_quorum
     hosts=""
     for zookeeper_quorum in "${zookeeper_quorums[@]}"
     do
     	hosts+="${zookeeper_quorum}:${hive_zookeeper_port},"
     done
+    
+    if [ -z "${hosts}" ]; then
+    	log_info "ERROR" "Unable to construct the hive.hiveserver2.jdbc.url"
+    	exit 1
+    fi
     hive_jdbc_url="jdbc:hive2://${hosts%?}/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2"
 else
-	beeline_jdbc_url_default=$(grep "beeline.hs2.jdbc.url.default" -A1 "$beeline_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
-    hive_jdbc_url=$(grep "beeline.hs2.jdbc.url.${beeline_jdbc_url_default}" -A1 "$beeline_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
+    beeline_jdbc_url_default=$(grep "beeline.hs2.jdbc.url.default" -A1 "${beeline_site_xml_file}" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
+    hive_jdbc_url=$(grep "beeline.hs2.jdbc.url.${beeline_jdbc_url_default}" -A1 "${beeline_site_xml_file}" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
 fi
 
 hive_metastore_uri=$(grep "thrift.*9083" "$hive_site_xml_file" |awk -F"<|>" '{print $3}')
 hwc_jar=$(find $hwc_directory -name hive-warehouse-connector-assembly-*.jar)
-hwc_pyfile=$(find $hwc_directory -name pyspark_hwc-*.zip)
+#hwc_pyfile=$(find $hwc_directory -name pyspark_hwc-*.zip)
 
 echo ""
 echo "spark-shell --master yarn \ "
@@ -85,4 +87,4 @@ echo "  --conf spark.sql.extensions=com.qubole.spark.hiveacid.HiveAcidAutoConver
 echo "  --conf spark.kryo.registrator=com.qubole.spark.hiveacid.util.HiveAcidKyroRegistrator"
 echo ""
 
-log_info "Run the above command to test HWC in CDP"
+log_info "Run the above spark-shell command to test the HWC in CDP cluster."
