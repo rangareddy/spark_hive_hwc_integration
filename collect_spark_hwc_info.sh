@@ -1,5 +1,9 @@
 #!/bin/bash
 
+set -x
+
+# log_info() is used to log the message based on logging level. By default logging level will be INFO.
+
 log_info() {
     if [[ "$#" -gt 0 ]]; then
         current_date_time=$(date +'%m/%d/%Y %T')
@@ -16,28 +20,34 @@ log_info() {
 
 log_info "Running $0 script"
 
-hive_site_xml_file=$(ls /etc/hive/conf/hive-site.xml)
-beeline_site_xml_file=$(find /etc -name beeline-site.xml)
-cdp_directory="/opt/cloudera/parcels/CDH"
-is_cdp_cluster=$([ -d $cdp_directory ] && echo true)
 
-hwc_directory=""
-if [ "$is_cdp_cluster" == true ]; then
-  hwc_directory="${cdp_directory}/lib/hive_warehouse_connector/"
-else
-  hwc_directory=""
-fi
+hive_site_xml_file_path="/etc/hive/conf/hive-site.xml"
+hive_site_xml_file=$(ls ${hive_site_xml_file_path})
+beeline_site_xml_file=$(find /etc -name beeline-site.xml)
+hwc_directory="/opt/cloudera/parcels/CDH/lib/hive_warehouse_connector/"
 
 script_usage() {
-  if [ ! -d "$hwc_directory" ]; then
-    log_info "ERROR" "HWC <$hwc_directory> directory does not exist"
-    exit 1
-  fi
+
+	ERROR_MSG=""
+
+  	if [ ! -d "$hwc_directory" ]; then
+    	ERROR_MSG="HWC <$hwc_directory> directory does not exist on this host or the current user <$(whoami)> does not have access to ${hwc_directory directory} directory."
+    	exit 1
+  	fi
+
+  	if [ ! -f "$hive_site_xml_file" ]; then
+    	ERROR_MSG="<hive-site.xml> file does not exist on this host or the current user <$(whoami)> does not have access to ${hive_site_xml_file_path} file."
+    	exit 1
+  	fi
+
+  	if [ -z "$ERROR_MSG" ]; then
+    	log_info "ERROR" ERROR_MSG
+    	exit 1
+  	fi
 }
 
 script_usage
 
-[ ! -f "$hive_site_xml_file" ] && { echo "<hive-site.xml> file does not exist on this host or the current user <$(whoami)> does not have access to the files."; exit 1; }
 hive_jdbc_url=""
 if [ -z "$beeline_site_xml_file" ]; then
     log_info "WARN" "<beeline-site.xml> file does not exist on this host or the current user <$(whoami)> does not have access to the files."
@@ -47,18 +57,17 @@ if [ -z "$beeline_site_xml_file" ]; then
     hosts=""
     for zookeeper_quorum in "${zookeeper_quorums[@]}"
     do
-      hosts+="${zookeeper_quorum}:${hive_zookeeper_port},"
+    	hosts+="${zookeeper_quorum}:${hive_zookeeper_port},"
     done
     hive_jdbc_url="jdbc:hive2://${hosts%?}/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2"
 else
-    hive_jdbc_url=$(grep "beeline.hs2.jdbc.url.hive" -A1 "$beeline_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
+	beeline_jdbc_url_default=$(grep "beeline.hs2.jdbc.url.default" -A1 "$beeline_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
+    hive_jdbc_url=$(grep "beeline.hs2.jdbc.url.${beeline_jdbc_url_default}" -A1 "$beeline_site_xml_file" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
 fi
 
 hive_metastore_uri=$(grep "thrift.*9083" "$hive_site_xml_file" |awk -F"<|>" '{print $3}')
 hwc_jar=$(find $hwc_directory -name hive-warehouse-connector-assembly-*.jar)
 hwc_pyfile=$(find $hwc_directory -name pyspark_hwc-*.zip)
-
-echo "metastore uri ${hive_metastore_uri}"
 
 echo ""
 echo "spark-shell --master yarn \ "
