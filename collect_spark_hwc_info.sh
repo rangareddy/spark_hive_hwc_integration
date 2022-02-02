@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#set -x
-
 # log_info() is used to log the message based on logging level. By default logging level will be INFO.
 log_info() {
     if [[ "$#" -gt 0 ]]; then
@@ -24,6 +22,8 @@ hive_site_xml_file_path="/etc/hive/conf/hive-site.xml"
 hive_site_xml_file=$(ls ${hive_site_xml_file_path})
 beeline_site_xml_file=$(find /etc -name beeline-site.xml)
 hwc_directory="/opt/cloudera/parcels/CDH/lib/hive_warehouse_connector/"
+
+`type klist > /dev/null;` && IS_KERBERIZED=true || IS_KERBERIZED=false
 
 script_usage() {
     ERROR_MSG=""
@@ -62,7 +62,10 @@ if [ -z "$beeline_site_xml_file" ]; then
     	log_info "ERROR" "Unable to construct the hive.hiveserver2.jdbc.url"
     	exit 1
     fi
-    hive_jdbc_url="jdbc:hive2://${hosts%?}/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2"
+    hive_jdbc_url="jdbc:hive2://${hosts%?}/default;retries=5;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2"
+    
+    #hive_jdbc_url="jdbc:hive2://<domain name>:<port>/default;principal=hive/_HOST@ROOT.HWX.SITE;retries=5;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2"
+
 else
     beeline_jdbc_url_default=$(grep "beeline.hs2.jdbc.url.default" -A1 "${beeline_site_xml_file}" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
     hive_jdbc_url=$(grep "beeline.hs2.jdbc.url.${beeline_jdbc_url_default}" -A1 "${beeline_site_xml_file}" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
@@ -72,8 +75,8 @@ hive_metastore_uri=$(grep "thrift.*9083" "$hive_site_xml_file" |awk -F"<|>" '{pr
 hwc_jar=$(find $hwc_directory -name hive-warehouse-connector-assembly-*.jar)
 #hwc_pyfile=$(find $hwc_directory -name pyspark_hwc-*.zip)
 
-echo "Launch the spark-shell by coping following command"
-echo "======================================================"
+log_info "Launch the spark-shell by coping the following command"
+log_info "======================================================"
 echo "spark-shell --master yarn \ "
 echo "  --conf spark.sql.hive.hiveserver2.jdbc.url='${hive_jdbc_url}' \ "
 echo "  --conf spark.datasource.hive.warehouse.metastoreUri='${hive_metastore_uri}' \ "
@@ -84,11 +87,19 @@ echo "  --conf spark.datasource.hive.warehouse.read.via.llap=false \ "
 echo "  --conf spark.datasource.hive.warehouse.read.mode=DIRECT_READER_V2 \ "
 echo "  --conf spark.sql.hive.hwc.execution.mode=spark \ "
 echo "  --conf spark.datasource.hive.warehouse.read.jdbc.mode=cluster \ "
-echo "  --conf spark.security.credentials.hiveserver2.enabled=false \ "
-echo "  --conf spark.sql.extensions=com.qubole.spark.hiveacid.HiveAcidAutoConvershension \ "
-echo "  --conf spark.kryo.registrator=com.qubole.spark.hiveacid.util.HiveAcidKyroRegistrator"
-echo "======================================================"
+echo "  --conf spark.sql.extensions=com.hortonworks.spark.sql.rule.Extensions \ "
+#echo "  --conf spark.sql.extensions=com.qubole.spark.hiveacid.HiveAcidAutoConvershension \ "
+echo "  --conf spark.kryo.registrator=com.qubole.spark.hiveacid.util.HiveAcidKyroRegistrator \ "
+if [ ${IS_KERBERIZED} ] then
+    echo "  --conf spark.security.credentials.hiveserver2.enabled=true \ "
+    user_prin=$(grep "hive.server2.authentication.kerberos.principal" -A1 "${hive_site_xml_file}" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
+    echo "  --conf spark.sql.hive.hiveserver2.jdbc.url.principal=${user_prin}"
+else
+    echo "  --conf spark.security.credentials.hiveserver2.enabled=false"
+fi
+log_info "======================================================"
 echo ""
+
 echo "After launching the spark-shell run the following code"
 echo ""
 echo "import com.hortonworks.hwc.HiveWarehouseSession"
@@ -102,4 +113,3 @@ echo "hive.executeQuery(s\"select * from \${tableName}\").show"
 echo ""
 
 log_info "$0 script finished"
-
