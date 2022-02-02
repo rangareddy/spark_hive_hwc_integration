@@ -1,5 +1,15 @@
 #!/bin/bash
 
+#################################################################################################################################
+#                                                                                                                               #
+#    Name		: collect_spark_hwc_info.sh                                                                             #
+#    Purpose		: Used to generate the spark-shell/pyspark command and run sample code in CDP cluster                   #
+#    Author		: Ranga Reddy                                                                                           #
+#    Created Date	: 02-Feb-2022                                                                                           #   
+#    Version		: v1.0													#												        #
+#                                                                                                                               #
+#################################################################################################################################
+
 # log_info() is used to log the message based on logging level. By default logging level will be INFO.
 log_info() {
     if [[ "$#" -gt 0 ]]; then
@@ -21,8 +31,7 @@ log_info "Running $0 script"
 hive_site_xml_file_path="/etc/hive/conf/hive-site.xml"
 hive_site_xml_file=$(ls ${hive_site_xml_file_path})
 beeline_site_xml_file=$(find /etc -name beeline-site.xml)
-hwc_directory="/opt/cloudera/parcels/CDH/lib/hive_warehouse_connector/"
-
+HWC_DIRECTORY="/opt/cloudera/parcels/CDH/lib/hive_warehouse_connector/"
 
 IS_SPARK_SHELL="${IS_SPARK_SHELL:-true}"
 IS_PYSPARK_SHELL="${IS_PYSPARK_SHELL:-false}"
@@ -32,8 +41,8 @@ IS_PYSPARK_SHELL="${IS_PYSPARK_SHELL:-false}"
 script_usage() {
     ERROR_MSG=""
 
-    if [ ! -d "$hwc_directory" ]; then
-    	ERROR_MSG="HWC <$hwc_directory> directory does not exist on this host or the current user <$(whoami)> does not have access to ${hwc_directory directory} directory."
+    if [ ! -d "$HWC_DIRECTORY" ]; then
+    	ERROR_MSG="HWC <$HWC_DIRECTORY> directory does not exist on this host or the current user <$(whoami)> does not have access to ${HWC_DIRECTORY directory} directory."
     fi
 
     if [ ! -f "$hive_site_xml_file" ]; then
@@ -76,9 +85,9 @@ else
 fi
 
 hive_metastore_uri=$(grep "thrift.*9083" "$hive_site_xml_file" |awk -F"<|>" '{print $3}')
-hwc_jar=$(find $hwc_directory -name hive-warehouse-connector-assembly-*.jar)
-hwc_pyfile=$(find $hwc_directory -name pyspark_hwc-*.zip)
+hwc_jar=$(find $HWC_DIRECTORY -name hive-warehouse-connector-assembly-*.jar)
 
+# Generating spark-shell script and code
 generate_spark_shell_script() {
 	echo ""
 	log_info "Launch the spark-shell by coping the following command"
@@ -127,7 +136,9 @@ generate_spark_shell_script() {
 	echo ""
 }
 
+# Generating Pyspark script and code
 generate_pyspark_shell_script() {
+	hwc_pyfile=$(find $HWC_DIRECTORY -name pyspark_hwc-*.zip)
 	echo ""
 	log_info "Launch the pyspark by coping the following command"
 	echo "======================================================"
