@@ -76,7 +76,7 @@ hwc_jar=$(find $hwc_directory -name hive-warehouse-connector-assembly-*.jar)
 #hwc_pyfile=$(find $hwc_directory -name pyspark_hwc-*.zip)
 
 log_info "Launch the spark-shell by coping the following command"
-log_info "======================================================"
+echo "======================================================"
 echo "spark-shell --master yarn \ "
 echo "  --conf spark.sql.hive.hiveserver2.jdbc.url='${hive_jdbc_url}' \ "
 echo "  --conf spark.datasource.hive.warehouse.metastoreUri='${hive_metastore_uri}' \ "
@@ -90,14 +90,14 @@ echo "  --conf spark.datasource.hive.warehouse.read.jdbc.mode=cluster \ "
 echo "  --conf spark.sql.extensions=com.hortonworks.spark.sql.rule.Extensions \ "
 #echo "  --conf spark.sql.extensions=com.qubole.spark.hiveacid.HiveAcidAutoConvershension \ "
 echo "  --conf spark.kryo.registrator=com.qubole.spark.hiveacid.util.HiveAcidKyroRegistrator \ "
-if [ ${IS_KERBERIZED} ] then
+if [ ${IS_KERBERIZED} ]; then
     echo "  --conf spark.security.credentials.hiveserver2.enabled=true \ "
     user_prin=$(grep "hive.server2.authentication.kerberos.principal" -A1 "${hive_site_xml_file}" |awk 'NR==2' | awk -F"[<|>]" '{print $3}')
     echo "  --conf spark.sql.hive.hiveserver2.jdbc.url.principal=${user_prin}"
 else
     echo "  --conf spark.security.credentials.hiveserver2.enabled=false"
 fi
-log_info "======================================================"
+echo "======================================================"
 echo ""
 
 echo "After launching the spark-shell run the following code"
